@@ -82,8 +82,8 @@ class ConvexHullSolver(QObject):
 		self.showText('Time Elapsed (Convex Hull): {:3.3f} sec'.format(t4 - t3))
 
 
-def divide_and_conquer(sorted_points):
-	length = len(sorted_points)
+def divide_and_conquer(sorted_points): # O(log(n))
+	length = len(sorted_points) # O(n)
 
 	# base case
 	if length == 1:
@@ -99,8 +99,8 @@ def divide_and_conquer(sorted_points):
 	else:
 		left_side = sorted_points[:length // 2]
 		right_side = sorted_points[length // 2:]
-		left_hull = divide_and_conquer(left_side)
-		right_hull = divide_and_conquer(right_side)
+		left_hull = divide_and_conquer(left_side) # O(n)
+		right_hull = divide_and_conquer(right_side) # O(n)
 		return combine_hulls(left_hull, right_hull)
 
 
@@ -137,12 +137,12 @@ def find_upper_tangent(L, R):
 	temp = get_slope(correct_left_point, correct_right_point)
 
 	done = False
-	while not done:
+	while not done: # worst case scenario - O()
 		done = True
 		is_upper = False
 
 		# left hull
-		while not is_upper:
+		while not is_upper: # worst case scenario - O()
 			#choose next counterclockwise node and get slope
 			left_current_node = left_current_node.counter_node
 			test_point = left_current_node.point
