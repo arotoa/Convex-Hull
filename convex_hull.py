@@ -67,7 +67,7 @@ class ConvexHullSolver(QObject):
 		t2 = time.time()
 
 		t3 = time.time()
-		# this is a dummy polygon of the first 3 unsorted points
+		# solve convex hull and get final points
 		final_hull = divide_and_conquer(points)
 		final_points = final_hull.get_points()
 		polygon = [QLineF(final_points[i], final_points[(i + 1)]) for i in range(len(final_points) - 1)]
@@ -85,12 +85,17 @@ class ConvexHullSolver(QObject):
 def divide_and_conquer(sorted_points):
 	length = len(sorted_points)
 
+	# base case
 	if length == 1:
+		# create new node with point
 		new_node = Node(sorted_points[0])
+		# create hull with new node
 		new_hull = Hull()
 		new_hull.change_left(new_node)
 		new_hull.change_right(new_node)
 		return new_hull
+
+	# combine two sides
 	else:
 		left_side = sorted_points[:length // 2]
 		right_side = sorted_points[length // 2:]
@@ -100,16 +105,21 @@ def divide_and_conquer(sorted_points):
 
 
 def combine_hulls(L, R):
+	# find both tangents
 	upper_tan = find_upper_tangent(L, R)
 	lower_tan = find_lower_tangent(L, R)
+	# first index is always left hull, second is right hull
 	left_node = upper_tan[0]
 	right_node = upper_tan[1]
+	#point the two nodes to each other
 	left_node.change_clockwise(right_node)
 	right_node.change_counter(left_node)
 	left_node = lower_tan[0]
 	right_node = lower_tan[1]
 	left_node.change_counter(right_node)
 	right_node.change_clockwise(left_node)
+
+	# create new hull with new left and right points
 	new_hull = Hull()
 	new_hull.change_left(L.left_most_val)
 	new_hull.change_right(R.right_most_val)
@@ -117,77 +127,108 @@ def combine_hulls(L, R):
 
 
 def find_upper_tangent(L, R):
+	# current nodes we are testing
 	left_current_node = L.right_most_val
 	right_current_node = R.left_most_val
 	correct_left_point = left_current_node.point
 	correct_right_point = right_current_node.point
+
+	# get initial slope
 	temp = get_slope(correct_left_point, correct_right_point)
+
 	done = False
 	while not done:
 		done = True
 		is_upper = False
+
+		# left hull
 		while not is_upper:
+			#choose next counterclockwise node and get slope
 			left_current_node = left_current_node.counter_node
 			test_point = left_current_node.point
 			test_slope = get_slope(test_point, correct_right_point)
+			# if new slope is less than original slope, update current point
 			if test_slope < temp:
 				temp = test_slope
 				correct_left_point = test_point
 				done = False
+			# if new slope is not correct, then break and go back to correct node
 			else:
 				is_upper = True
 				left_current_node = left_current_node.clockwise_node
+
+		# right hull
 		is_upper = False
 		while not is_upper:
+			#choose next clockwise node and get slope
 			right_current_node = right_current_node.clockwise_node
 			test_point = right_current_node.point
 			test_slope = get_slope(correct_left_point, test_point)
+			# if new slope is greater than original slope, update current point
 			if test_slope > temp:
 				temp = test_slope
 				correct_right_point = test_point
 				done = False
+			# if new slope is not correct, then break and go back to correct node
 			else:
 				is_upper = True
 				right_current_node = right_current_node.counter_node
 
+	# return list of two nodes that are upper tangent
 	upper_tan_nodes = [left_current_node, right_current_node]
 	return upper_tan_nodes
 
 
 def find_lower_tangent(L, R):
+	# current nodes we are testing
 	left_current_node = L.right_most_val
 	right_current_node = R.left_most_val
 	correct_left_point = left_current_node.point
 	correct_right_point = right_current_node.point
+
+	# get initial slope
 	temp = get_slope(correct_left_point, correct_right_point)
+
+
 	done = False
 	while not done:
 		done = True
 		is_lower = False
+
+		# left hull
 		while not is_lower:
+			#choose next clockwise node and get slope
 			left_current_node = left_current_node.clockwise_node
 			test_point = left_current_node.point
 			test_slope = get_slope(test_point, correct_right_point)
+			# if new slope is greater than original slope, update current point
 			if test_slope > temp:
 				temp = test_slope
 				correct_left_point = test_point
 				done = False
+			# if new slope is not correct, then break and go back to correct node
 			else:
 				is_lower = True
 				left_current_node = left_current_node.counter_node
+
+		# right hull
 		is_lower = False
 		while not is_lower:
+			#choose next counterclockwise node and get slope
 			right_current_node = right_current_node.counter_node
 			test_point = right_current_node.point
 			test_slope = get_slope(correct_left_point, test_point)
+			# if new slope is less than original slope, update current point
 			if test_slope < temp:
 				temp = test_slope
 				correct_right_point = test_point
 				done = False
+			# if new slope is not correct, then break and go back to correct node
 			else:
 				is_lower = True
 				right_current_node = right_current_node.clockwise_node
 
+	# return list of two nodes that are lower tangent
 	lower_tan_nodes = [left_current_node, right_current_node]
 	return lower_tan_nodes
 
@@ -226,6 +267,7 @@ class Hull:
 		first_point = curr_node.point
 		hull_points.append(curr_node.point)
 		curr_node = curr_node.counter_node
+		# go through linked list
 		while True:
 			if curr_node.point != first_point:
 				hull_points.append(curr_node.point)
