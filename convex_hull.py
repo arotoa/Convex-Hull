@@ -82,7 +82,7 @@ class ConvexHullSolver(QObject):
 		self.showText('Time Elapsed (Convex Hull): {:3.3f} sec'.format(t4 - t3))
 
 
-def divide_and_conquer(sorted_points): # O(log(n))
+def divide_and_conquer(sorted_points): # O(nlog(n))
 	length = len(sorted_points) # O(n)
 
 	# base case
@@ -101,32 +101,32 @@ def divide_and_conquer(sorted_points): # O(log(n))
 		right_side = sorted_points[length // 2:]
 		left_hull = divide_and_conquer(left_side) # O(n)
 		right_hull = divide_and_conquer(right_side) # O(n)
-		return combine_hulls(left_hull, right_hull)
+		return combine_hulls(left_hull, right_hull) # O(n)
 
 
-def combine_hulls(L, R):
+def combine_hulls(L, R): # O(n)
 	# find both tangents
-	upper_tan = find_upper_tangent(L, R)
-	lower_tan = find_lower_tangent(L, R)
+	upper_tan = find_upper_tangent(L, R) # O(n)
+	lower_tan = find_lower_tangent(L, R) # O(n)
 	# first index is always left hull, second is right hull
 	left_node = upper_tan[0]
 	right_node = upper_tan[1]
 	#point the two nodes to each other
-	left_node.change_clockwise(right_node)
-	right_node.change_counter(left_node)
+	left_node.change_clockwise(right_node) # O(1)
+	right_node.change_counter(left_node) # O(1)
 	left_node = lower_tan[0]
 	right_node = lower_tan[1]
-	left_node.change_counter(right_node)
-	right_node.change_clockwise(left_node)
+	left_node.change_counter(right_node) # O(1)
+	right_node.change_clockwise(left_node) # O(1)
 
 	# create new hull with new left and right points
 	new_hull = Hull()
-	new_hull.change_left(L.left_most_val)
-	new_hull.change_right(R.right_most_val)
+	new_hull.change_left(L.left_most_val) #O(1)
+	new_hull.change_right(R.right_most_val) # O(1)
 	return new_hull
 
 
-def find_upper_tangent(L, R):
+def find_upper_tangent(L, R): # O(n)
 	# current nodes we are testing
 	left_current_node = L.right_most_val
 	right_current_node = R.left_most_val
@@ -137,12 +137,12 @@ def find_upper_tangent(L, R):
 	temp = get_slope(correct_left_point, correct_right_point)
 
 	done = False
-	while not done: # worst case scenario - O()
+	while not done: # worst case scenario - O(2n) = O(n)
 		done = True
 		is_upper = False
 
 		# left hull
-		while not is_upper: # worst case scenario - O()
+		while not is_upper: # worst case scenario - O(n) - run through every node
 			#choose next counterclockwise node and get slope
 			left_current_node = left_current_node.counter_node
 			test_point = left_current_node.point
@@ -159,7 +159,7 @@ def find_upper_tangent(L, R):
 
 		# right hull
 		is_upper = False
-		while not is_upper:
+		while not is_upper: # worst case scenario - O(n) - run through every node
 			#choose next clockwise node and get slope
 			right_current_node = right_current_node.clockwise_node
 			test_point = right_current_node.point
@@ -179,7 +179,7 @@ def find_upper_tangent(L, R):
 	return upper_tan_nodes
 
 
-def find_lower_tangent(L, R):
+def find_lower_tangent(L, R): # O(n)
 	# current nodes we are testing
 	left_current_node = L.right_most_val
 	right_current_node = R.left_most_val
@@ -191,12 +191,12 @@ def find_lower_tangent(L, R):
 
 
 	done = False
-	while not done:
+	while not done: # worst case scenario - O(2n) = O(n)
 		done = True
 		is_lower = False
 
 		# left hull
-		while not is_lower:
+		while not is_lower: # worst case scenario - O(n) - run through every node
 			#choose next clockwise node and get slope
 			left_current_node = left_current_node.clockwise_node
 			test_point = left_current_node.point
@@ -213,7 +213,7 @@ def find_lower_tangent(L, R):
 
 		# right hull
 		is_lower = False
-		while not is_lower:
+		while not is_lower: # worst case scenario - O(n) - run through every node
 			#choose next counterclockwise node and get slope
 			right_current_node = right_current_node.counter_node
 			test_point = right_current_node.point
